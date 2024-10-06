@@ -1,17 +1,39 @@
 "use client"
-import React, { useState } from "react";
+import dynamic from "next/dynamic";
+import React, { useState,useEffect } from "react";
 import * as math from "mathjs";// Import mathjs library for advanced calculations
 import Decimal from 'decimal.js';
+import evaluatex from 'evaluatex/dist/evaluatex';
+
+const EditableMathField = dynamic(
+  () => import("react-mathquill").then((mod) => mod.EditableMathField),
+  { ssr: false }
+);
+
 
 function Home() {
+
+  useEffect(() => {
+    import("react-mathquill").then((mq) => {
+      mq.addStyles();
+    });
+  }, []);
+
+  const [latex, setLatex] = useState('');
   const [arcsineValue, setArcsineValue] = useState("");
   const [resultValue, setResultValue] = useState("");
 
-  const handleInputChange = (event: { target: { value: any; }; }) => {
-    const newValue = event.target.value;
-    setArcsineValue(newValue);
-  };
+  const handleInputChange = (newLatex: string) => {
 
+    if(newLatex){
+      
+      const fn = evaluatex(newLatex);
+      const evaluatedValue = fn();
+      setArcsineValue(evaluatedValue.toString());
+
+    }
+
+  }
   const calculateArcsine = () => {
     // try {
 
@@ -19,29 +41,29 @@ function Home() {
     const evaluatedValue = new Decimal(decimalValue);
 
 
-      if (evaluatedValue.toNumber() < -1 || evaluatedValue.toNumber() > 1) {
-        alert(
-          "Invalid input! Please enter a value between -1 and 1 for arcsine calculation."
-        );
-        return;
-      }
+    if (evaluatedValue.toNumber() < -1 || evaluatedValue.toNumber() > 1) {
+      alert(
+        "Invalid input! Please enter a value between -1 and 1 for arcsine calculation."
+      );
+      return;
+    }
 
-      const resultDegrees = math.unit(math.asin(evaluatedValue), "rad").to("deg");
-      const roundedResult = new Decimal(resultDegrees.toString().replace(" deg", "")).toFixed(10);
+    const resultDegrees = math.unit(math.asin(evaluatedValue), "rad").to("deg");
+    const roundedResult = new Decimal(resultDegrees.toString().replace(" deg", "")).toFixed(10);
 
-      const numberForMinutes = parseFloat(roundedResult);
-      const decimalPartForMinutes = numberForMinutes - Math.floor(numberForMinutes);
-      const degrees = parseFloat(roundedResult) - decimalPartForMinutes;
-      const minutesWithDecimals = decimalPartForMinutes * 60;
+    const numberForMinutes = parseFloat(roundedResult);
+    const decimalPartForMinutes = numberForMinutes - Math.floor(numberForMinutes);
+    const degrees = parseFloat(roundedResult) - decimalPartForMinutes;
+    const minutesWithDecimals = decimalPartForMinutes * 60;
 
-      const numberForSeconds = minutesWithDecimals;
-      const decimalPartForSeconds = numberForSeconds - Math.floor(numberForSeconds);
-      const minutes = minutesWithDecimals - decimalPartForSeconds;
-      const secondsWithDecimals = decimalPartForSeconds * 60;
+    const numberForSeconds = minutesWithDecimals;
+    const decimalPartForSeconds = numberForSeconds - Math.floor(numberForSeconds);
+    const minutes = minutesWithDecimals - decimalPartForSeconds;
+    const secondsWithDecimals = decimalPartForSeconds * 60;
 
-      const roundedSeconds = Math.round(secondsWithDecimals);
+    const roundedSeconds = Math.round(secondsWithDecimals);
 
-      setResultValue(`The Arcsine of ${arcsineValue} is approximately ${degrees} degrees and ${minutes} minutes and ${roundedSeconds} seconds`);
+    setResultValue(`The Arcsine of ${arcsineValue} is approximately ${degrees} degrees and ${minutes} minutes and ${roundedSeconds} seconds`);
 
     // } catch (error) {
     //   console.error("Error evaluating expression:", error);
@@ -55,12 +77,17 @@ function Home() {
         <label className="text-3xl">Arcsine Calculator</label>
         <div className="flex lg:flex-row flex-col justify-between items-center gap-10">
           <label htmlFor="">Arcsine Value:</label>
-          <input
-            type="text"
-            value={arcsineValue}
-            onChange={handleInputChange}
-            className="rounded-2xl outline-none text-black p-2"
-          />
+          <EditableMathField
+              latex={latex}
+              onChange={(mathField) => {
+                const newLatex = mathField.latex(); // Get the new LaTeX expression
+                setLatex(newLatex); // Update the latex state
+                 // Pass the newLatex to handleInputChange
+              }}
+              onBlur={() => {
+                handleInputChange(latex);
+              }}
+              />
         </div>
         <label htmlFor="">{resultValue}</label>
         <button onClick={calculateArcsine} className="w-full text-lg border p-2 rounded-lg">
