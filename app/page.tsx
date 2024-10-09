@@ -20,7 +20,9 @@ function Home() {
   }, []);
 
   const [latex, setLatex] = useState('');
+  const [latexSine, setLatexSine] = useState('');
   const [arcsineValue, setArcsineValue] = useState("");
+  const [sineValue, setSineValue] = useState("");
   const [resultValue, setResultValue] = useState("");
 
   const handleInputChange = (newLatex: string) => {
@@ -34,6 +36,19 @@ function Home() {
     }
 
   }
+
+  const handleInputChangeSine = (newLatex: string) => {
+
+    if(newLatex){
+      
+      const fn = evaluatex(newLatex);
+      const evaluatedValue = fn();
+      setSineValue(evaluatedValue.toString());
+
+    }
+
+  }
+
   const calculateArcsine = () => {
     // try {
 
@@ -71,9 +86,51 @@ function Home() {
     // }
   };
 
+  const calculateSine = () => {
+
+    const decimalValue = math.evaluate(sineValue);
+
+    //const decimalValueInRads = (decimalValue*3.14)/180;
+    const sine = math.sin(math.unit(decimalValue, "deg").to("rad"));
+    const roundedResult = new Decimal(sine.toString()).toFixed(6);
+    
+    //const sine = math.sin(decimalValueInRads);
+
+    console.log(roundedResult);
+
+  };
+
+  function handleButtonToggle(targetDivId: string) {
+    const arcSineDiv = document.getElementById('arcSine');
+    const sineDiv = document.getElementById('sine');
+  
+    if(arcSineDiv && sineDiv){
+
+      if (targetDivId === 'arcSine') {
+        arcSineDiv.style.display = 'flex';
+        sineDiv.style.display = 'none';
+      } else if (targetDivId === 'sine') {
+        arcSineDiv.style.display = 'none';
+        sineDiv.style.display = 'flex';
+      }
+
+    }
+
+  }
+  
+  function handleSineButtonClick() {
+    handleButtonToggle('sine');
+  }
+  
+  function handleArcsineButtonClick() {
+    handleButtonToggle('arcSine');
+  }
+
   return (
-    <div className="w-full h-screen flex justify-center items-center p-10">
+    <>
+    <div id="arcSine" className="w-full h-screen flex justify-center items-center p-10">
       <div className=" flex justify-center items-center outline rounded-2xl p-10 gap-10 flex-col">
+        <button onClick={handleSineButtonClick} style={{background:'#1b0a9e'}} >Sine</button>
         <label className="text-3xl">Arcsine Calculator</label>
         <div className="flex lg:flex-row flex-col justify-between items-center gap-10">
           <label htmlFor="">Arcsine Value:</label>
@@ -96,6 +153,32 @@ function Home() {
 
       </div>
     </div>
+
+    <div id="sine" style={{display:'none'}} className="w-full h-screen flex justify-center items-center p-10">
+      <div className=" flex justify-center items-center outline rounded-2xl p-10 gap-10 flex-col">
+        <button onClick={handleArcsineButtonClick} style={{background:'#1b0a9e'}} >Arcsine</button>
+        <label className="text-3xl">Sine Calculator</label>
+        <div className="flex lg:flex-row flex-col justify-between items-center gap-10">
+          <label htmlFor="">Sine Value (degrees):</label>
+          <EditableMathField
+              latex={latexSine}
+              onChange={(mathField) => {
+                const newLatex = mathField.latex();
+                setLatexSine(newLatex);
+              }}
+              onBlur={() => {
+                handleInputChangeSine(latexSine);
+              }}
+              />
+        </div>
+        <label htmlFor="">{resultValue}</label>
+        <button onClick={calculateSine} className="w-full text-lg border p-2 rounded-lg">
+          Calculate!
+        </button>
+
+      </div>
+    </div>
+    </>
   );
 }
 
