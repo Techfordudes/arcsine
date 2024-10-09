@@ -95,8 +95,7 @@ function Home() {
     const roundedResult = new Decimal(sine.toString()).toFixed(6);
     
     //const sine = math.sin(decimalValueInRads);
-
-    console.log(roundedResult);
+    setResultValue(`The Sine of ${decimalValue} is approximately ${roundedResult}`);
 
   };
 
